@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#e94560">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Solar Hot Water</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div id="login-screen" class="screen active">
+    <div class="login-box">
+      <h1>Solar Hot Water</h1>
+      <input type="password" id="password-input" placeholder="Password" autocomplete="current-password">
+      <button id="login-btn">Log In</button>
+      <p id="login-error" class="error hidden"></p>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="hidden">
+
+    <!-- Dashboard Tab -->
+    <div id="tab-dashboard" class="tab-content active">
+      <div class="temp-cards">
+        <div class="temp-card panel-card">
+          <span class="temp-label">Panel</span>
+          <span class="temp-value" id="temp-panel">--</span>
+          <span class="temp-unit">&deg;C</span>
+        </div>
+        <div class="temp-card inflow-card">
+          <span class="temp-label">Inflow</span>
+          <span class="temp-value" id="temp-inflow">--</span>
+          <span class="temp-unit">&deg;C</span>
+        </div>
+        <div class="temp-card outflow-card">
+          <span class="temp-label">Outflow</span>
+          <span class="temp-value" id="temp-outflow">--</span>
+          <span class="temp-unit">&deg;C</span>
+        </div>
+      </div>
+
+      <div class="relay-controls">
+        <div class="relay-row">
+          <span class="relay-label">Pump</span>
+          <span class="relay-status" id="pump-status">OFF</span>
+          <button class="relay-btn" id="pump-btn" disabled>Toggle</button>
+        </div>
+        <div class="relay-row">
+          <span class="relay-label">Boiler</span>
+          <span class="relay-status" id="boiler-status">OFF</span>
+          <button class="relay-btn" id="boiler-btn" disabled>Toggle</button>
+        </div>
+      </div>
+
+      <div class="mode-control">
+        <span class="mode-label">Mode</span>
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="mode-auto">Auto</button>
+          <button class="mode-btn" id="mode-manual">Manual</button>
+        </div>
+        <span id="manual-timeout" class="manual-timeout hidden"></span>
+      </div>
+
+      <div id="alerts-banner" class="alerts-banner hidden"></div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="tab-history" class="tab-content">
+      <div class="history-controls">
+        <input type="date" id="history-date">
+        <button id="history-load">Load</button>
+      </div>
+      <div class="chart-container">
+        <canvas id="history-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="tab-settings" class="tab-content">
+      <section class="settings-section">
+        <h2>Sensors</h2>
+        <p class="settings-hint">Assign a physical sensor to each role. Available sensors are detected from the 1-wire bus.</p>
+        <div class="setting-row">
+          <label>Panel</label>
+          <select id="sensor-panel"></select>
+        </div>
+        <div class="setting-row">
+          <label>Inflow</label>
+          <select id="sensor-inflow"></select>
+        </div>
+        <div class="setting-row">
+          <label>Outflow</label>
+          <select id="sensor-outflow"></select>
+        </div>
+        <h3 class="settings-subhead">Calibration Offsets (&deg;C)</h3>
+        <div class="setting-row">
+          <label>Panel</label>
+          <input type="number" id="offset-panel" step="0.5">
+        </div>
+        <div class="setting-row">
+          <label>Inflow</label>
+          <input type="number" id="offset-inflow" step="0.5">
+        </div>
+        <div class="setting-row">
+          <label>Outflow</label>
+          <input type="number" id="offset-outflow" step="0.5">
+        </div>
+        <button id="save-sensors">Save Sensor Config</button>
+      </section>
+
+      <section class="settings-section">
+        <h2>Schedule</h2>
+        <div class="setting-row">
+          <label>Solar start</label>
+          <input type="number" id="sched-solar-start" min="0" max="23">
+        </div>
+        <div class="setting-row">
+          <label>Solar end</label>
+          <input type="number" id="sched-solar-end" min="0" max="23">
+        </div>
+        <div class="setting-row">
+          <label>Boiler start</label>
+          <input type="number" id="sched-boiler-start" min="0" max="23">
+        </div>
+        <div class="setting-row">
+          <label>Boiler end</label>
+          <input type="number" id="sched-boiler-end" min="0" max="23">
+        </div>
+        <button id="save-schedule">Save Schedule</button>
+      </section>
+
+      <section class="settings-section">
+        <h2>Alerts</h2>
+        <div class="setting-row">
+          <label>Sensor failure</label>
+          <input type="checkbox" id="alert-sensor_failure" checked>
+        </div>
+        <div class="setting-row">
+          <label>Panel overtemperature</label>
+          <input type="checkbox" id="alert-overtemp" checked>
+        </div>
+        <div class="setting-row">
+          <label>Pump running too long</label>
+          <input type="checkbox" id="alert-pump_runtime" checked>
+        </div>
+        <div class="setting-row">
+          <label>No temperature rise</label>
+          <input type="checkbox" id="alert-no_temp_rise" checked>
+        </div>
+        <button id="save-alerts">Save Alert Settings</button>
+      </section>
+
+      <section class="settings-section">
+        <h2>System Status</h2>
+        <div id="system-info" class="system-info">Loading...</div>
+      </section>
+
+      <section class="settings-section">
+        <h2>Change Password</h2>
+        <input type="password" id="current-pw" placeholder="Current password">
+        <input type="password" id="new-pw" placeholder="New password">
+        <button id="change-pw-btn">Change Password</button>
+        <p id="pw-message" class="hidden"></p>
+      </section>
+
+      <section class="settings-section">
+        <button id="logout-btn" class="logout-btn">Log Out</button>
+      </section>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="dashboard">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M13 3v6h8V3m-8 18h8V11h-8M3 21h8v-6H3m0-2h8V3H3v10z"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-btn" data-tab="history">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 14h4v-4H3m0 9h4v-4H3m5 4h4v-4H8m5 4h4v-4h-4M8 10h4V6H8m5 4h4V6h-4m5 0v4h4V6m-4 9h4v-4h-4m0 9h4v-4h-4"/></svg>
+        <span>History</span>
+      </button>
+      <button class="nav-btn" data-tab="settings">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.98l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66z"/></svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[Unit]
+Description=Solar Hot Water Controller
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/ophiothrix/projects/Solar
+ExecStartPre=/bin/bash -c 'modprobe w1-gpio && modprobe w1-therm && sleep 2'
+ExecStart=/usr/bin/python3 -m app.main
+Restart=always
+RestartSec=10
+Environment=SOLAR_LOG_DIR=/home/ophiothrix/projects/Solar/hotwater
+Environment=SOLAR_DB_PATH=/home/ophiothrix/projects/Solar/app/solar.db
+
+[Install]
+WantedBy=multi-user.target

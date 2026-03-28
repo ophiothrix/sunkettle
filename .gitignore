@@ -1,0 +1,28 @@
+# Collateral (legacy scripts, R analysis, logs, reference files)
+collateral/
+
+# Runtime data
+app/solar.db
+hotwater/*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Claude Code
+.claude/
+
+# IDE / editor
+.Rproj.user/
+.Rhistory
+*.un~
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated PWA icons script (icons themselves are tracked)
+app/static/icons/generate_icons.py
